@@ -16,33 +16,16 @@ def process_request(t):
 
 app = Flask("pyProm")
 
+counter = prom.Counter('python_my_counter', 'This is my counter')
 
 @app.route('/', methods=["GET", "POST"])
 def hi():
     if request.method == "GET":
+        counter.inc(1)
         return "OK", 200, None
 
     return "Bad Request", 400, None
 
-
-counter = prom.Counter('python_my_counter', 'This is my counter')
-gauge = prom.Gauge('python_my_gauge', 'This is my gauge')
-histogram = prom.Histogram('python_my_histogram', 'This is my histogram')
-summary = prom.Summary('python_my_summary', 'This is my summary')
-
-
-def thr():
-    while True:
-        counter.inc(random.random())
-        gauge.set(random.random() * 15 - 5)
-        histogram.observe(random.random() * 10)
-        summary.observe(random.random() * 10)
-        process_request(random.random() * 5)
-
-        time.sleep(1)
-
-
-Thread(target=thr).start()
 
 monitor(app, port=8080)
 app.run(host="0.0.0.0", port=80)
